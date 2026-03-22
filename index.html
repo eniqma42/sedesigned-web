@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SE Design - Web Tasarım & Geliştirme</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@700&family=Rajdhani:wght@300;400;600;700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--gold:#C8A96E;--gl:#E8C98C;--gd:#8a6e3c;--black:#050505;--white:#f5f0e8}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--black);font-family:'Rajdhani',sans-serif;cursor:none}
+
+/* CURSOR */
+#cur1,#cur2,#cur3,#cur4{position:fixed;pointer-events:none;z-index:99999;top:-100px;left:-100px}
+#cur1{width:38px;height:38px;border:1.5px solid var(--gold);border-radius:50%;margin:-19px 0 0 -19px;transition:width .25s,height .25s,border-color .25s,margin .25s;opacity:.8}
+#cur2{width:7px;height:7px;background:var(--gold);border-radius:50%;margin:-3.5px 0 0 -3.5px}
+#cur3{width:18px;height:1px;background:var(--gold);margin:0 0 0 -9px;opacity:.5}
+#cur4{width:1px;height:18px;background:var(--gold);margin:-9px 0 0 0;opacity:.5}
+body.hov #cur1{width:56px;height:56px;margin:-28px 0 0 -28px;border-color:var(--gl);opacity:1}
+body.hov #cur2{background:var(--gl)}
+body.clk #cur1{width:16px;height:16px;margin:-8px 0 0 -8px;border-color:#fff}
+body.clk #cur2{width:12px;height:12px;margin:-6px 0 0 -6px;background:#fff}
+
+/* BURST */
+.bst{position:fixed;pointer-events:none;z-index:99998}
+.bst-r{position:absolute;width:6px;height:6px;border:2px solid var(--gold);border-radius:50%;margin:-3px 0 0 -3px;animation:bR .55s ease-out forwards}
+.bst-p{position:absolute;width:5px;height:5px;border-radius:50%;margin:-2.5px 0 0 -2.5px;animation:bP .45s ease-out forwards}
+@keyframes bR{to{width:80px;height:80px;margin:-40px 0 0 -40px;opacity:0}}
+@keyframes bP{to{opacity:0;transform:translate(var(--tx),var(--ty)) scale(0)}}
+
+/* BG */
+#bgc{position:fixed;inset:0;z-index:0;opacity:.4}
+.noise{position:fixed;inset:0;z-index:1;opacity:.03;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:200px;pointer-events:none}
+.scanline{position:fixed;top:-2px;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);animation:scan 3s ease-in-out .1s 1 forwards;z-index:50;opacity:.7}
+.corn{position:fixed;width:40px;height:40px;opacity:0;animation:fi 1s ease 3s forwards;z-index:20}
+.corn.tl{top:24px;left:24px;border-top:1px solid var(--gold);border-left:1px solid var(--gold)}
+.corn.tr{top:24px;right:24px;border-top:1px solid var(--gold);border-right:1px solid var(--gold)}
+.corn.bl{bottom:24px;left:24px;border-bottom:1px solid var(--gold);border-left:1px solid var(--gold)}
+.corn.br{bottom:24px;right:24px;border-bottom:1px solid var(--gold);border-right:1px solid var(--gold)}
+
+/* PAGES */
+.page{position:fixed;inset:0;width:100%;height:100%;transition:transform .8s cubic-bezier(.77,0,.175,1)}
+#mainPage{transform:translateX(0)}
+.subp{transform:translateX(100%);overflow-y:auto}
+body.popen #mainPage{transform:translateX(-100%)}
+body.popen .subp.act{transform:translateX(0)}
+
+/* MAIN */
+.scene{position:relative;width:100%;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10}
+.lwrap{position:relative;display:flex;align-items:center;justify-content:center;margin-bottom:32px;opacity:0;animation:fu 1.2s cubic-bezier(.16,1,.3,1) .4s forwards}
+.lr1{position:absolute;width:160px;height:160px;border-radius:50%;border:1.5px solid transparent;background:linear-gradient(135deg,var(--gold),transparent 60%) border-box;-webkit-mask:linear-gradient(#fff 0 0) padding-box,linear-gradient(#fff 0 0);-webkit-mask-composite:destination-out;mask-composite:exclude;animation:rot 10s linear infinite}
+.lr2{position:absolute;width:140px;height:140px;border-radius:50%;border:.5px solid var(--gd);opacity:.4;animation:rot 16s linear infinite reverse}
+.lhex{position:relative;width:110px;height:110px;background:linear-gradient(145deg,#1a1510,#0a0804);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);display:flex;align-items:center;justify-content:center;box-shadow:0 0 40px rgba(200,169,110,.25),inset 0 0 30px rgba(0,0,0,.8);animation:pls 3s ease-in-out 2s infinite}
+.ltx{font-family:'Cormorant Garamond',serif;font-size:46px;font-weight:700;background:linear-gradient(135deg,#E8C98C,#C8A96E,#8a6e3c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:4px;filter:drop-shadow(0 0 12px rgba(200,169,110,.6))}
+.brand{font-family:'Rajdhani',sans-serif;font-size:clamp(36px,7vw,68px);font-weight:700;letter-spacing:14px;text-transform:uppercase;color:var(--white);opacity:0;animation:fu 1s cubic-bezier(.16,1,.3,1) 1s forwards;margin-bottom:6px}
+.brand span{background:linear-gradient(90deg,#E8C98C,#C8A96E);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.tagl{font-size:clamp(12px,2vw,16px);font-weight:300;letter-spacing:6px;text-transform:uppercase;color:var(--gd);opacity:0;animation:fu 1s ease 1.5s forwards;margin-bottom:48px}
+.div{display:flex;align-items:center;gap:16px;opacity:0;animation:fu 1s ease 1.8s forwards;margin-bottom:48px;width:min(440px,90vw)}
+.dl{flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+.dd{width:6px;height:6px;background:var(--gold);transform:rotate(45deg);box-shadow:0 0 8px var(--gold)}
+.svcs{display:flex;gap:clamp(18px,3.5vw,40px);flex-wrap:wrap;justify-content:center;opacity:0;animation:fu 1s ease 2.1s forwards;margin-bottom:52px}
+.si{display:flex;flex-direction:column;align-items:center;gap:10px;cursor:none}
+.sic{width:44px;height:44px;border:1px solid var(--gd);display:flex;align-items:center;justify-content:center;color:var(--gold);transition:all .3s;position:relative;overflow:hidden}
+.sic::before{content:'';position:absolute;inset:0;background:var(--gold);transform:scaleX(0);transform-origin:left;transition:transform .3s;z-index:0}
+.si:hover .sic::before{transform:scaleX(1)}
+.si:hover .sic{color:var(--black)}
+.sic svg{position:relative;z-index:1}
+.sl{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--gd);font-weight:500}
+.ctaw{opacity:0;animation:fu 1s ease 2.5s forwards}
+.cb{position:relative;padding:14px 44px;border:1px solid var(--gold);background:transparent;color:var(--gold);font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;letter-spacing:5px;text-transform:uppercase;cursor:none;overflow:hidden;transition:color .4s}
+.cb::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,#E8C98C,#C8A96E);transform:translateX(-101%);transition:transform .4s cubic-bezier(.77,0,.175,1)}
+.cb:hover::before{transform:translateX(0)}
+.cb:hover{color:var(--black)}
+.cb span{position:relative;z-index:1}
+.sig{position:fixed;bottom:34px;right:72px;font-family:'Dancing Script',cursive;font-size:20px;color:var(--gd);opacity:0;animation:fi 1.5s ease 3.3s forwards;letter-spacing:1px;z-index:20}
+#cbox{position:fixed;bottom:80px;right:52px;opacity:1;z-index:99998;display:flex;flex-direction:column;align-items:center;gap:10px;background:rgba(5,5,5,.9);border:1px solid var(--gold);padding:12px;border-radius:4px}
+#ctxt{display:none;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;letter-spacing:2px;color:var(--gold);border:1px solid var(--gold);padding:8px 14px;background:rgba(5,5,5,.95)}
+
+/* SUB PAGES */
+.sscene{width:100%;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;z-index:10;padding:80px 40px 40px}
+.backbtn{position:fixed;top:24px;left:24px;z-index:200;background:transparent;border:1px solid var(--gd);color:var(--gd);font-family:'Rajdhani',sans-serif;font-size:11px;letter-spacing:4px;text-transform:uppercase;padding:10px 20px;cursor:none;transition:all .3s}
+.backbtn:hover{border-color:var(--gold);color:var(--gold)}
+.abtn{position:fixed;top:24px;right:24px;z-index:200;background:transparent;border:1px solid var(--gold);color:var(--gold);font-family:'Rajdhani',sans-serif;font-size:11px;letter-spacing:4px;text-transform:uppercase;padding:10px 20px;cursor:none;transition:all .3s}
+.abtn:hover{border-color:var(--gl);color:var(--gl)}
+.sico{width:70px;height:70px;border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;color:var(--gold);margin-bottom:20px;position:relative}
+.sico::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(200,169,110,.1),transparent)}
+.sico svg{position:relative;z-index:1}
+.stit{font-family:'Rajdhani',sans-serif;font-size:clamp(28px,5.5vw,56px);font-weight:700;letter-spacing:10px;text-transform:uppercase;margin-bottom:6px;color:var(--white);text-align:center}
+.stit span{background:linear-gradient(90deg,#E8C98C,#C8A96E);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stag{font-size:12px;letter-spacing:5px;text-transform:uppercase;color:var(--gd);margin-bottom:28px;text-align:center}
+.div2{display:flex;align-items:center;gap:16px;margin-bottom:28px;width:min(440px,85vw)}
+.sdesc{max-width:560px;text-align:center;line-height:1.9;color:rgba(245,240,232,.8);font-size:15px;margin-bottom:28px}
+.sfts{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:560px}
+.sft{border:1px solid var(--gd);padding:8px 18px;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--gd);transition:all .3s;cursor:none}
+.sft:hover{border-color:var(--gold);color:var(--gold)}
+
+/* ANNOUNCEMENTS */
+.agrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;width:min(1000px,90vw);margin-bottom:28px}
+.acard{border:1px solid var(--gd);padding:24px;position:relative;transition:all .3s}
+.acard:hover{border-color:var(--gold)}
+.acard::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(200,169,110,.05),transparent)}
+.atit{font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;color:var(--white);margin-bottom:10px}
+.adesc{color:rgba(245,240,232,.8);font-size:13px;line-height:1.6;margin-bottom:12px;max-height:80px;overflow-y:auto}
+.acont{font-size:11px;color:var(--gd);margin-bottom:10px;padding:8px;border-left:2px solid var(--gold)}
+.acont strong{color:var(--gold)}
+.aacts{display:flex;gap:8px;margin-top:12px}
+.aact{flex:1;padding:8px 12px;border:1px solid var(--gd);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gd);cursor:none;transition:all .3s;background:transparent}
+.aact:hover{border-color:var(--gold);color:var(--gold)}
+
+/* FORM */
+.aform{display:flex;flex-direction:column;gap:14px;width:min(500px,90vw);margin-bottom:28px}
+.ainp{background:rgba(200,169,110,.05);border:1px solid var(--gd);padding:12px 16px;color:var(--white);font-family:'Rajdhani',sans-serif;font-size:13px}
+.ainp::placeholder{color:var(--gd)}
+.ainp:focus{outline:none;border-color:var(--gold);box-shadow:0 0 10px rgba(200,169,110,.2)}
+.afrm-btns{display:flex;gap:10px}
+.afbtn{flex:1;padding:12px;border:1px solid var(--gd);background:transparent;color:var(--gd);font-family:'Rajdhani',sans-serif;font-size:12px;letter-spacing:3px;text-transform:uppercase;cursor:none;transition:all .3s}
+.afbtn:hover{border-color:var(--gold);color:var(--gold)}
+.afbtn.pub{border-color:var(--gold);color:var(--gold)}
+
+/* REVIEWS */
+.rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;width:min(960px,90vw);max-height:48vh;overflow-y:auto;padding-right:6px;margin-bottom:18px}
+.rgrid::-webkit-scrollbar{width:3px}
+.rgrid::-webkit-scrollbar-track{background:rgba(200,169,110,.1)}
+.rgrid::-webkit-scrollbar-thumb{background:var(--gold);border-radius:3px}
+.rcard{border:1px solid var(--gd);padding:20px;position:relative;font-size:12px}
+.rcard::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(200,169,110,.05),transparent)}
+.rstars{color:var(--gold);font-size:14px;margin-bottom:8px}
+.rtxt{color:rgba(245,240,232,.8);line-height:1.6;margin-bottom:8px}
+.raut{color:var(--gold);font-weight:600;margin-bottom:4px}
+.rdt{color:var(--gd);font-size:10px}
+
+.rfm{display:flex;flex-direction:column;gap:12px;width:min(500px,90vw);margin-bottom:24px}
+.rfi{background:rgba(200,169,110,.05);border:1px solid var(--gd);padding:10px 14px;color:var(--white);font-family:'Rajdhani',sans-serif;font-size:12px}
+.rfi::placeholder{color:var(--gd)}
+.rfi:focus{outline:none;border-color:var(--gold)}
+.star-rating{display:flex;gap:6px;margin-bottom:12px}
+.starbtn{width:32px;height:32px;border:1px solid var(--gd);background:transparent;color:var(--gd);cursor:none;transition:all .3s;font-size:16px;display:flex;align-items:center;justify-content:center}
+.starbtn:hover{border-color:var(--gold);color:var(--gold)}
+.starbtn.on{border-color:var(--gold);color:var(--gold);background:rgba(200,169,110,.1)}
+.rsub{padding:12px 32px;border:1px solid var(--gd);background:transparent;color:var(--gd);font-family:'Rajdhani',sans-serif;font-size:12px;letter-spacing:3px;text-transform:uppercase;cursor:none;transition:all .3s}
+.rsub:hover{border-color:var(--gold);color:var(--gold)}
+
+/* CONTACT */
+.ctit{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:700;background:linear-gradient(135deg,#E8C98C,#C8A96E,#8a6e3c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:6px;margin-bottom:8px}
+.chtit{font-family:'Rajdhani',sans-serif;font-size:clamp(26px,5vw,48px);font-weight:700;letter-spacing:12px;text-transform:uppercase;color:var(--white);margin-bottom:6px;text-align:center}
+.chtit span{background:linear-gradient(90deg,#E8C98C,#C8A96E);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.csub{font-size:12px;letter-spacing:5px;text-transform:uppercase;color:var(--gd);margin-bottom:32px;text-align:center}
+.ccards{display:flex;flex-wrap:wrap;gap:16px;justify-content:center}
+.ccard{border:1px solid var(--gd);padding:28px 44px;text-align:center;position:relative}
+.ccard::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(200,169,110,.05),transparent)}
+.clbl{font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--gd);margin-bottom:10px}
+.cnum{font-family:'Rajdhani',sans-serif;font-size:clamp(16px,2.5vw,26px);font-weight:700;letter-spacing:3px;color:var(--gold);position:relative;z-index:1}
+
+/* ANIMATIONS */
+@keyframes fu{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fi{from{opacity:0}to{opacity:1}}
+@keyframes rot{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes pls{0%,100%{box-shadow:0 0 40px rgba(200,169,110,.25),inset 0 0 30px rgba(0,0,0,.8)}50%{box-shadow:0 0 60px rgba(200,169,110,.4),inset 0 0 40px rgba(0,0,0,.6)}}
+@keyframes scan{from{top:0}to{top:100vh}}
+
+/* HAMBURGER MENU */
+#hamburger { position:fixed; top:24px; left:24px; z-index:300; background:rgba(200,169,110,.1); border:2px solid #C8A96E; width:50px; height:50px; display:flex; align-items:center; justify-content:center; cursor:none; transition:.3s; border-radius:4px; }
+#hamburger:hover { background:rgba(200,169,110,.2); }
+#hamburger span { width:24px; height:2px; background:#C8A96E; position:absolute; transition:.3s; }
+#hamburger span:nth-child(1) { top:16px; }
+#hamburger span:nth-child(2) { top:24px; }
+#hamburger span:nth-child(3) { top:32px; }
+#hamburger.active span:nth-child(1) { transform:rotate(45deg) translate(8px, 8px); }
+#hamburger.active span:nth-child(2) { opacity:0; }
+#hamburger.active span:nth-child(3) { transform:rotate(-45deg) translate(8px, -8px); }
+
+#sidebar { position:fixed; top:0; left:-280px; width:280px; height:100%; background:linear-gradient(135deg, rgba(5,5,5,.98), rgba(40,30,20,.98)); z-index:280; transition:left .4s cubic-bezier(.77,0,.175,1); backdrop-filter:blur(10px); padding-top:100px; border-right:2px solid rgba(200,169,110,.2); overflow-y:auto; }
+#sidebar.show { left:0; }
+
+.sidebar-item { padding:18px 25px; color:#C8A96E; font-size:13px; font-weight:700; letter-spacing:2px; cursor:none; transition:.3s; border-left:3px solid transparent; text-transform:uppercase; display:block; width:100%; }
+.sidebar-item:hover { border-left-color:#E8C98C; background:rgba(200,169,110,.1); color:#E8C98C; }
+
+.sidebar-divider { height:1px; background:rgba(200,169,110,.1); margin:10px 0; }
+
+</style>
+</head>
+<body>
+<div id="cur1"></div>
+<div id="cur2"></div>
+<div id="cur3"></div>
+<div id="cur4"></div>
+
+<!-- HAMBURGER MENU -->
+<button id="hamburger" onclick="toggleSidebar()">
+  <span></span>
+  <span></span>
+  <span></span>
+</button>
+
+<!-- SIDEBAR MENU -->
+<div id="sidebar">
+  <div class="sidebar-item" onclick="closeSidebar()">📱 HİZMETLER</div>
+  <div class="sidebar-item" onclick="closeSidebar()">🖼️ PORTFÖY</div>
+  <div class="sidebar-item" onclick="closeSidebar()">💰 FİYATLAR</div>
+  <div class="sidebar-item" onclick="closeSidebar()">⭐ YORUMLAR</div>
+  <div class="sidebar-item" onclick="closeSidebar()">📝 BLOG</div>
+  <div class="sidebar-divider"></div>
+  <div class="sidebar-item" onclick="goTo('contactPage'); closeSidebar()">📞 İLETİŞİM</div>
+  <div class="sidebar-item" onclick="goTo('reviewsPage'); closeSidebar()">⭐ MÜŞTERİ YORUMLARI</div>
+  <div class="sidebar-item" onclick="goTo('announcePage'); closeSidebar()">📢 MÜŞTERİ İLANLARI</div>
+</div>
+
+<div id="bgc"></div>
+<div class="noise"></div>
+<div class="scanline"></div>
+<div class="corn tl"></div>
+<div class="corn tr"></div>
+<div class="corn bl"></div>
+<div class="corn br"></div>
+
+<div id="mainPage" class="page">
+  <div class="scene">
+    <div class="lwrap">
+      <div class="lr1"></div>
+      <div class="lr2"></div>
+      <div class="lhex">
+        <div class="ltx">SE</div>
+      </div>
+    </div>
+    <h1 class="brand">SE <span>DESIGN</span></h1>
+    <p class="tagl">Web Tasarım & Geliştirme</p>
+    <div class="div">
+      <div class="dl"></div>
+      <div class="dd"></div>
+      <div class="dl"></div>
+    </div>
+    <div class="svcs">
+      <div class="si">
+        <div class="sic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="15" x2="15" y2="15"/></svg></div>
+        <span class="sl">Design</span>
+      </div>
+      <div class="si">
+        <div class="sic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="12 3 20 7.5 20 16.5 12 21 4 16.5 4 7.5 12 3"/></svg></div>
+        <span class="sl">Development</span>
+      </div>
+      <div class="si">
+        <div class="sic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9"/></svg></div>
+        <span class="sl">Consulting</span>
+      </div>
+    </div>
+    <div class="ctaw">
+      <button class="cb" onclick="goTo('contactPage')"><span>İLETİŞİM</span></button>
+    </div>
+    <div class="sig">Soner Erbil</div>
+  </div>
+</div>
+
+<div id="cbox" style="position:fixed !important;bottom:80px !important;right:52px !important;z-index:99998 !important;display:flex !important;flex-direction:column;align-items:center;gap:10px;background:rgba(5,5,5,.9);border:1px solid #C8A96E;padding:12px;border-radius:4px">
+  <button class="cb" onclick="goTo('reviewsPage')" style="margin-bottom:10px"><span>YORUMLAR</span></button>
+  <button class="cb" onclick="goTo('announcePage')"><span>MÜŞTERİ İLANLARI</span></button>
+</div>
+
+<div id="contactPage" class="subp page">
+  <div class="sscene">
+    <button class="backbtn" onclick="goBack()">← GERİ</button>
+    <div style="text-align:center;margin-bottom:40px">
+      <h1 class="chtit">İLETİŞİM <span>BİLGİLERİ</span></h1>
+      <p class="csub">Benimle İletişime Geçin</p>
+    </div>
+    <div class="ccards">
+      <div class="ccard">
+        <div class="clbl">Telefon</div>
+        <div class="cnum">+90 534 749 43 66</div>
+      </div>
+      <div class="ccard">
+        <div class="clbl">WhatsApp</div>
+        <div class="cnum">+90 534 749 43 66</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="reviewsPage" class="subp page">
+  <div class="sscene">
+    <button class="backbtn" onclick="goBack()">← GERİ</button>
+    <div style="text-align:center;margin-bottom:40px">
+      <h1 class="stit">MÜŞTERİ <span>YORUMLARI</span></h1>
+      <p class="stag">Yapılan Işler ve Geri Dönüşler</p>
+    </div>
+    <div id="rg" class="rgrid"></div>
+    <div style="text-align:center;width:100%">
+      <h2 style="color:var(--white);font-family:'Rajdhani';font-size:20px;margin-bottom:20px;letter-spacing:4px">YORUM EKLE</h2>
+      <form class="rfm" onsubmit="addReview();return false">
+        <input type="text" class="rfi" id="rname" placeholder="Adınız" required>
+        <textarea class="rfi" id="rtxt" placeholder="Yorumunuz" rows="3" required></textarea>
+        <div class="star-rating">
+          <button type="button" class="starbtn on" data-v="1" onclick="setStar(1)">★</button>
+          <button type="button" class="starbtn on" data-v="2" onclick="setStar(2)">★</button>
+          <button type="button" class="starbtn on" data-v="3" onclick="setStar(3)">★</button>
+          <button type="button" class="starbtn on" data-v="4" onclick="setStar(4)">★</button>
+          <button type="button" class="starbtn on" data-v="5" onclick="setStar(5)">★</button>
+        </div>
+        <button type="submit" class="rsub"><span>YORUM GÖNDER</span></button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div id="announcePage" class="subp page">
+  <div class="sscene">
+    <button class="backbtn" onclick="goBack()">← GERİ</button>
+    <button class="abtn" onclick="toggleForm()">+ YENİ İLAN</button>
+    <div style="text-align:center;margin-bottom:40px">
+      <h1 class="stit">MÜŞTERİ <span>İLANLARI</span></h1>
+      <p class="stag">İlanları Yönetin</p>
+    </div>
+    <div id="formDiv" style="display:none">
+      <form class="aform" onsubmit="saveAnnouncement(event)">
+        <input type="text" class="ainp" id="annTitle" placeholder="İlan Başlığı" required>
+        <textarea class="ainp" id="annDesc" placeholder="İlan Açıklaması" rows="4" required></textarea>
+        <input type="text" class="ainp" id="annPhone" placeholder="Telefon Numarası">
+        <input type="email" class="ainp" id="annEmail" placeholder="Email Adresi">
+        <input type="text" class="ainp" id="annAddress" placeholder="Adres">
+        <div class="afrm-btns">
+          <button type="button" class="afbtn" onclick="toggleForm()">İPTAL</button>
+          <button type="submit" class="afbtn pub">KAYDET</button>
+        </div>
+      </form>
+    </div>
+    <div class="agrid" id="announcementsGrid"></div>
+  </div>
+</div>
+
+<script>
+emailjs.init('FVK8I0OY44rLv6yU2');
+
+/* HAMBURGER MENU */
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const hamburger = document.getElementById('hamburger');
+  sidebar.classList.toggle('show');
+  hamburger.classList.toggle('active');
+}
+
+function closeSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const hamburger = document.getElementById('hamburger');
+  sidebar.classList.remove('show');
+  hamburger.classList.remove('active');
+}
+
+document.addEventListener('click', e => {
+  const sidebar = document.getElementById('sidebar');
+  const hamburger = document.getElementById('hamburger');
+  if(!sidebar.contains(e.target) && !hamburger.contains(e.target)) {
+    closeSidebar();
+  }
+});
+
+/* CURSOR */
+document.addEventListener('mousemove',function(e){
+  document.getElementById('cur1').style.left=e.clientX+'px';
+  document.getElementById('cur1').style.top=e.clientY+'px';
+  document.getElementById('cur2').style.left=e.clientX+'px';
+  document.getElementById('cur2').style.top=e.clientY+'px';
+  document.getElementById('cur3').style.left=e.clientX+'px';
+  document.getElementById('cur3').style.top=e.clientY+'px';
+  document.getElementById('cur4').style.left=e.clientX+'px';
+  document.getElementById('cur4').style.top=e.clientY+'px';
+});
+document.addEventListener('mouseover',function(e){
+  const t=e.target.closest('button,.si,.cb,.backbtn,.abtn,#cbox,.sft,.sic,.afbtn,.aact,.rsub,.starbtn');
+  if(t) document.body.classList.add('hov');
+});
+document.addEventListener('mouseout',function(e){
+  const t=e.target.closest('button,.si,.cb,.backbtn,.abtn,#cbox,.sft,.sic,.afbtn,.aact,.rsub,.starbtn');
+  if(t) document.body.classList.remove('hov');
+});
+document.addEventListener('mousedown',function(e){
+  document.body.classList.add('clk');
+  doBurst(e.clientX,e.clientY);
+});
+document.addEventListener('mouseup',function(){document.body.classList.remove('clk')});
+
+/* BURST */
+function doBurst(x,y){
+  const b=document.createElement('div');
+  b.className='bst';
+  b.style.left=x+'px'; b.style.top=y+'px';
+  document.body.appendChild(b);
+  for(let i=0;i<2;i++){
+    const r=document.createElement('div');
+    r.className='bst-r';
+    r.style.animationDelay=(i*.1)+'s';
+    b.appendChild(r);
+  }
+  for(let i=0;i<8;i++){
+    const a=(i/8)*Math.PI*2;
+    const d=40+Math.random()*25;
+    const p=document.createElement('div');
+    p.className='bst-p';
+    p.style.setProperty('--tx',Math.round(Math.cos(a)*d)+'px');
+    p.style.setProperty('--ty',Math.round(Math.sin(a)*d)+'px');
+    p.style.background=i%2?'#E8C98C':'#C8A96E';
+    p.style.animationDelay=(i*.04)+'s';
+    b.appendChild(p);
+  }
+  setTimeout(function(){b.remove()},600);
+}
+
+/* PAGE TRANSITIONS */
+function goTo(id){
+  document.querySelectorAll('.subp').forEach(function(p){p.classList.remove('act')});
+  var el=document.getElementById(id);
+  if(el){el.classList.add('act')}
+  document.body.classList.add('popen');
+}
+function goBack(){
+  document.body.classList.remove('popen');
+  setTimeout(function(){
+    document.querySelectorAll('.subp').forEach(function(p){p.classList.remove('act')});
+  },850);
+}
+
+/* REVIEWS */
+var defRevs=[
+  {name:'Ahmet Yılmaz',stars:5,text:'SE Design gerçekten harika bir iş çıkardı! Sitemiz hem görsel hem de teknik açıdan mükemmel.',date:'Ocak 2025'},
+  {name:'Elif Kaya',stars:5,text:'Web sitemizin yenilenmesi için SE Design ile çalıştık. Sonuç beklentilerimizin çok ötesinde.',date:'Şubat 2025'},
+  {name:'Mehmet Demir',stars:5,text:'Kurumsal kimliğimizi dijital ortama taşıdılar. Logo tasarımından web sitesine kadar her şey kusursuz.',date:'Şubat 2025'},
+];
+var allRevs=defRevs.slice();
+var selStar=5;
+
+function renderRevs(){
+  var g=document.getElementById('rg');
+  if(!g)return;
+  g.innerHTML=allRevs.map(function(r){
+    var stars='★'.repeat(r.stars)+'☆'.repeat(5-r.stars);
+    return '<div class="rcard"><div class="rstars">'+stars+'</div><div class="rtxt">"'+r.text+'"</div><div class="raut">'+r.name+'</div><div class="rdt">'+r.date+'</div></div>';
+  }).join('');
+}
+renderRevs();
+
+function setStar(v){
+  selStar=v;
+  document.querySelectorAll('.starbtn').forEach(function(b){
+    b.classList.toggle('on',parseInt(b.dataset.v)<=v);
+  });
+}
+
+function addReview(){
+  var name=document.getElementById('rname').value.trim();
+  var txt=document.getElementById('rtxt').value.trim();
+  if(!name||!txt)return;
+  var months=['Ocak','Subat','Mart','Nisan','Mayis','Haziran','Temmuz','Agustos','Eylul','Ekim','Kasim','Aralik'];
+  var now=new Date();
+  var ds=months[now.getMonth()]+' '+now.getFullYear();
+  emailjs.send('service_jjt74to','template_6qxhdd8',{
+    from_name:name,
+    stars:'★'.repeat(selStar)+'☆'.repeat(5-selStar),
+    message:txt,
+    date:ds
+  });
+  allRevs.unshift({name:name,stars:selStar,text:txt,date:ds});
+  document.getElementById('rname').value='';
+  document.getElementById('rtxt').value='';
+  setStar(5);
+  renderRevs();
+  var btn=document.querySelector('.rsub');
+  btn.innerHTML='<span>✓ Gönderildi</span>';
+  setTimeout(function(){btn.innerHTML='<span>YORUM GÖNDER</span>'},2000);
+}
+
+/* ANNOUNCEMENTS */
+var announcements=JSON.parse(localStorage.getItem('announcements'))||[];
+
+function renderAnnouncements(){
+  var g=document.getElementById('announcementsGrid');
+  if(!g)return;
+  g.innerHTML=announcements.map(function(a,idx){
+    return '<div class="acard"><div class="atit">'+a.title+'</div><div class="adesc">'+a.desc+'</div><div class="acont"><strong>Tel:</strong> '+a.phone+'<br><strong>Email:</strong> '+a.email+'<br><strong>Adres:</strong> '+a.address+'</div><div class="aacts"><button class="aact" onclick="editAnnouncement('+idx+')">DÜZEN</button><button class="aact" onclick="deleteAnnouncement('+idx+')">SİL</button><button class="aact" onclick="publishAnnouncement('+idx+')" style="border-color:var(--gold);color:var(--gold)">YAYINLA</button></div></div>';
+  }).join('');
+}
+renderAnnouncements();
+
+function toggleForm(){
+  var f=document.getElementById('formDiv');
+  f.style.display=f.style.display=='none'?'flex':'none';
+}
+
+function saveAnnouncement(e){
+  e.preventDefault();
+  var title=document.getElementById('annTitle').value.trim();
+  var desc=document.getElementById('annDesc').value.trim();
+  var phone=document.getElementById('annPhone').value.trim();
+  var email=document.getElementById('annEmail').value.trim();
+  var address=document.getElementById('annAddress').value.trim();
+  if(!title||!desc)return;
+  announcements.unshift({title:title,desc:desc,phone:phone,email:email,address:address});
+  localStorage.setItem('announcements',JSON.stringify(announcements));
+  document.getElementById('annTitle').value='';
+  document.getElementById('annDesc').value='';
+  document.getElementById('annPhone').value='';
+  document.getElementById('annEmail').value='';
+  document.getElementById('annAddress').value='';
+  toggleForm();
+  renderAnnouncements();
+}
+
+function editAnnouncement(idx){
+  var a=announcements[idx];
+  document.getElementById('annTitle').value=a.title;
+  document.getElementById('annDesc').value=a.desc;
+  document.getElementById('annPhone').value=a.phone;
+  document.getElementById('annEmail').value=a.email;
+  document.getElementById('annAddress').value=a.address;
+  announcements.splice(idx,1);
+  localStorage.setItem('announcements',JSON.stringify(announcements));
+  toggleForm();
+  renderAnnouncements();
+}
+
+function deleteAnnouncement(idx){
+  announcements.splice(idx,1);
+  localStorage.setItem('announcements',JSON.stringify(announcements));
+  renderAnnouncements();
+}
+
+function publishAnnouncement(idx){
+  var a=announcements[idx];
+  emailjs.send('service_jjt74to','template_6qxhdd8',{
+    from_name:a.title,
+    message:a.desc+'\n\nTelefon: '+a.phone+'\nEmail: '+a.email+'\nAdres: '+a.address
+  });
+  var btn=event.target;
+  btn.innerHTML='✓ YAYINLANDI';
+  btn.style.opacity='0.5';
+}
+
+</script>
+</body>
+</html>
