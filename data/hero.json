@@ -1,0 +1,13 @@
+{
+  "title": "Tarzınızı <span>Yansıtın</span>",
+  "subtitle": "Yeni Sezon Ürünleri",
+  "description": "SE Designed Marketplace'te benzersiz tasarımlar, özel ürünler ve sınırlı sayıda koleksiyonlar sizi bekliyor. Modayı keşfedin.",
+  "btn1Text": "Alışverişe Başla",
+  "btn2Text": "Koleksiyonları Keşfet",
+  "image": "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&h=600&fit=crop",
+  "stats": {
+    "products": "10K+",
+    "customers": "5K+",
+    "satisfaction": "99%"
+  }
+}
