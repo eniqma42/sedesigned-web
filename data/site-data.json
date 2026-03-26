@@ -1,0 +1,24 @@
+{
+  "products": [],
+  "categories": [],
+  "hero": {
+    "title": "Tarzınızı Yansıtın",
+    "subtitle": "Yeni Sezon Ürünleri",
+    "description": "SE Designed Marketplace'te benzersiz tasarımlar...",
+    "image": "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&h=600&fit=crop",
+    "btn1Text": "Alışverişe Başla",
+    "btn2Text": "Koleksiyonları Keşfet",
+    "stats": {
+      "products": "10K+",
+      "customers": "5K+",
+      "satisfaction": "99%"
+    }
+  },
+  "footer": {
+    "description": "Tarzınızı yansıtmanız için özenle seçilmiş ürünler...",
+    "address": "İstanbul, Türkiye",
+    "phone": "+90 555 123 45 67",
+    "email": "info@sedesigned.com",
+    "copyright": "© 2024 SE Designed Marketplace. Tüm hakları saklıdır."
+  }
+}
